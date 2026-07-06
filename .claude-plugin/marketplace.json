@@ -15,6 +15,11 @@
       "name": "marketing-biz",
       "source": "./plugins/marketing-biz",
       "description": "マーケティング（調査・戦略・コピー・SEO・SNS・PR・ローンチ・KPI）とビジネスプランニング（リーンキャンバス・事業計画・財務モデル・価格・ピッチ・OKR）の15スキル集"
+    },
+    {
+      "name": "android-dev",
+      "source": "./plugins/android-dev",
+      "description": "Androidアプリ開発の全工程（雛形生成・設計・Compose UI・データ層・バックグラウンド・品質・リリース・CI）をカバーする15のスキル集"
     }
   ]
 }
