@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ゲーム要件定義シート</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --text: #1a1d23; --sub: #5c6470;
+    --line: #dde1e7; --accent: #3b6ef5; --accent-soft: #e8eefe;
+    --req: #d43f3f; --ok: #1d9e5f; --warn: #b7791f;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --card: #1e2128; --text: #e8eaed; --sub: #9aa3af;
+      --line: #333842; --accent: #6d94ff; --accent-soft: #253352;
+      --req: #ff7b7b; --ok: #4cc98a; --warn: #e0a94e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;
+    line-height: 1.7; font-size: 15px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 120px; }
+  header h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+  header p.lead { color: var(--sub); margin: 0 0 16px; }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 10; background: var(--bg);
+    padding: 10px 0; border-bottom: 1px solid var(--line);
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .meter { flex: 1; min-width: 160px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .meter > div { height: 100%; width: 0%; background: var(--accent); transition: width .3s; }
+  .meter-label { font-size: .8rem; color: var(--sub); white-space: nowrap; }
+
+  section.card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px 22px; margin: 18px 0;
+  }
+  section.card h2 {
+    font-size: 1.1rem; margin: 0 0 2px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  section.card h2 .num { color: var(--accent); font-family: var(--mono); font-size: .9rem; }
+  .section-note { color: var(--sub); font-size: .85rem; margin: 0 0 14px; }
+
+  .field { margin: 14px 0; }
+  .field > label { display: block; font-weight: 600; font-size: .92rem; margin-bottom: 2px; }
+  .req { color: var(--req); font-size: .8rem; margin-left: 4px; }
+  .opt { color: var(--sub); font-weight: 400; font-size: .8rem; margin-left: 4px; }
+  .hint { color: var(--sub); font-size: .82rem; margin: 0 0 6px; }
+  .hint b { color: var(--warn); font-weight: 600; }
+
+  input[type=text], textarea, select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--bg); color: var(--text); font: inherit; font-size: .92rem;
+  }
+  textarea { min-height: 74px; resize: vertical; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .missing { outline: 2px solid var(--req); outline-offset: -1px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  @media (max-width: 640px) { .row2 { grid-template-columns: 1fr; } }
+
+  .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .checks label { font-weight: 400; font-size: .92rem; display: inline-flex; gap: 6px; align-items: center; }
+
+  .dyn-list { display: flex; flex-direction: column; gap: 12px; }
+  .dyn-item {
+    border: 1px dashed var(--line); border-radius: 8px; padding: 12px 14px; position: relative;
+  }
+  .dyn-item .del {
+    position: absolute; top: 8px; right: 8px; border: none; background: none;
+    color: var(--sub); cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 4px;
+  }
+  .dyn-item .del:hover { color: var(--req); background: var(--bg); }
+
+  table.balance { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  table.balance th { text-align: left; color: var(--sub); font-weight: 600; padding: 4px 6px; }
+  table.balance td { padding: 3px 4px; }
+  table.balance input { padding: 6px 8px; }
+  table.balance .del-row { border: none; background: none; color: var(--sub); cursor: pointer; border-radius: 4px; }
+  table.balance .del-row:hover { color: var(--req); }
+
+  button.btn {
+    border: 1px solid var(--line); background: var(--card); color: var(--text);
+    padding: 7px 14px; border-radius: 6px; cursor: pointer; font: inherit; font-size: .88rem;
+  }
+  button.btn:hover { border-color: var(--accent); color: var(--accent); }
+  button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.btn.primary:hover { opacity: .9; color: #fff; }
+  button.btn.small { padding: 4px 10px; font-size: .82rem; }
+
+  .footer-actions {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    background: var(--card); border-top: 1px solid var(--line);
+    padding: 10px 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  }
+  #status { font-size: .84rem; color: var(--ok); align-self: center; min-width: 120px; text-align: center; }
+
+  dialog {
+    max-width: 780px; width: 92vw; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); color: var(--text); padding: 0;
+  }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  .dlg-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  .dlg-head h3 { margin: 0; font-size: 1rem; }
+  dialog pre {
+    margin: 0; padding: 16px 18px; overflow: auto; max-height: 60vh;
+    font-family: var(--mono); font-size: .8rem; line-height: 1.55; white-space: pre-wrap;
+  }
+  .dlg-foot { padding: 10px 18px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎮 ゲーム要件定義シート</h1>
+    <p class="lead">上から順に埋めるだけで、AI（他モデル）に渡してゲームを完成させられる要件定義書（Markdown）が生成されます。<span class="req">*</span> は必須。任意項目を空欄にすると「実装者が妥当なデフォルトを決定する」という指示に変換されるので、空欄でも文書は破綻しません。入力は自動保存されます。</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="meter"><div id="meterBar"></div></div>
+    <span class="meter-label" id="meterLabel">記入率 0%</span>
+    <button class="btn small" id="btnSample">記入例を読み込む</button>
+    <button class="btn small" id="btnClear">全消去</button>
+  </div>
+
+  <!-- 1. 基本情報 -->
+  <section class="card" data-sec="1">
+    <h2><span class="num">1</span>基本情報</h2>
+    <p class="section-note">ゲームの外形。実装者が技術選定とスコープ感を掴むための土台です。</p>
+    <div class="row2">
+      <div class="field">
+        <label>タイトル（仮）<span class="req">*必須</span></label>
+        <input type="text" id="f_title" data-req placeholder="例: 星くず回収社">
+      </div>
+      <div class="field">
+        <label>ジャンル<span class="req">*必須</span></label>
+        <input type="text" id="f_genre" data-req placeholder="例: 2Dアクション / パズル / ローグライク">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>プラットフォーム<span class="req">*必須</span></label>
+        <select id="f_platform" data-req>
+          <option value="">選択してください</option>
+          <option>Webブラウザ（PC）</option>
+          <option>Webブラウザ（PC・スマホ両対応）</option>
+          <option>Webブラウザ（スマホ優先）</option>
+          <option>PCデスクトップアプリ</option>
+          <option>その他（備考に記入）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>1プレイの長さ<span class="opt">任意</span></label>
+        <input type="text" id="f_session" placeholder="例: 1周 3〜5分、リトライ前提">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>参考にするゲーム<span class="opt">任意</span></label>
+        <p class="hint">雰囲気・操作感の参考。「〇〇の△△の部分」まで書くと伝わります。</p>
+        <input type="text" id="f_reference" placeholder="例: Vampire Survivors の自動攻撃と成長感">
+      </div>
+      <div class="field">
+        <label>ターゲットプレイヤー<span class="opt">任意</span></label>
+        <input type="text" id="f_target" placeholder="例: 休憩時間に遊ぶカジュアル層 / アクション上級者">
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. コンセプト -->
+  <section class="card" data-sec="2">
+    <h2><span class="num">2</span>コンセプト</h2>
+    <p class="section-note">このゲームの「面白さの核」。実装者は迷ったとき、常にここに立ち返って判断します。</p>
+    <div class="field">
+      <label>コンセプト1文<span class="req">*必須</span></label>
+      <p class="hint">形式: <b>「〇〇（プレイヤー）が、△△（行動）することで、□□（体験・感情）を味わうゲーム」</b></p>
+      <input type="text" id="f_concept" data-req placeholder="例: 宇宙清掃員が、増え続けるデブリを磁力で束ねて投げ返すことで、ギリギリの掃除快感を味わうゲーム">
+    </div>
+    <div class="field">
+      <label>一番気持ちいい瞬間<span class="opt">任意・強く推奨</span></label>
+      <p class="hint">プレイ中のベストな3秒間を具体的に。実装者はこの瞬間の手触りを最優先で作り込みます。</p>
+      <textarea id="f_bestmoment" placeholder="例: 画面いっぱいのデブリを1つに束ねて、巨大な塊を敵母艦に投げつけて一掃する瞬間"></textarea>
+    </div>
+    <div class="field">
+      <label>差別化ポイント<span class="opt">任意</span></label>
+      <textarea id="f_unique" placeholder="例: 敵を倒す手段が「拾って投げ返す」しかない。弾を撃てない"></textarea>
+    </div>
+  </section>
+
+  <!-- 3. コアループ -->
+  <section class="card" data-sec="3">
+    <h2><span class="num">3</span>コアループ</h2>
+    <p class="section-note">プレイヤーが繰り返す行動のサイクル。ここが曖昧だとゲームになりません。</p>
+    <div class="field">
+      <label>コアループ（3〜5ステップ）<span class="req">*必須</span></label>
+      <p class="hint">1行1ステップで。最後のステップが最初に戻る流れになっているか確認。</p>
+      <textarea id="f_coreloop" data-req placeholder="例:
+1. デブリを避けながら接近する
+2. 磁力でデブリを吸着して束ねる
+3. 束を敵に投げて撃破する
+4. 撃破報酬で磁力範囲が広がり、より大きな束を作れる → 1に戻る"></textarea>
+    </div>
+    <div class="field">
+      <label>プレイヤーが上達する要素<span class="opt">任意</span></label>
+      <p class="hint">繰り返しても飽きない理由。プレイヤースキル（操作・判断）とゲーム内成長のどちらか、または両方。</p>
+      <textarea id="f_mastery" placeholder="例: 束ねる量とリスクのトレードオフ判断。大きく束ねるほど強いが、その間は無防備"></textarea>
+    </div>
+  </section>
+
+  <!-- 4. 操作 -->
+  <section class="card" data-sec="4">
+    <h2><span class="num">4</span>操作</h2>
+    <p class="section-note">入力と操作の割り当て。</p>
+    <div class="field">
+      <label>入力デバイス<span class="req">*必須</span></label>
+      <div class="checks" id="f_devices" data-req data-group>
+        <label><input type="checkbox" value="キーボード">キーボード</label>
+        <label><input type="checkbox" value="マウス">マウス</label>
+        <label><input type="checkbox" value="タッチ">タッチ</label>
+        <label><input type="checkbox" value="ゲームパッド">ゲームパッド</label>
+      </div>
+    </div>
+    <div class="field">
+      <label>操作割り当て<span class="opt">任意</span></label>
+      <p class="hint">「入力 = 動作」の形式で1行ずつ。空欄ならジャンル標準の操作を実装者が設定します。</p>
+      <textarea id="f_controls" placeholder="例:
+WASD/矢印 = 移動
+マウス移動 = 照準
+左クリック長押し = 磁力吸着（束ねる）
+左クリック離す = 投げる"></textarea>
+    </div>
+  </section>
+
+  <!-- 5. メカニクス -->
+  <section class="card" data-sec="5">
+    <h2><span class="num">5</span>主要メカニクス</h2>
+    <p class="section-note">ゲームを構成するルールを1つずつ。<b>数値は仮でよいので必ず入れる</b>のがコツです（「速い」ではなく「移動速度 300px/秒」）。最低1つ、コアループに登場する要素はすべて書いてください。</p>
+    <div class="dyn-list" id="mechList"></div>
+    <p><button class="btn small" id="btnAddMech">＋ メカニクスを追加</button></p>
+  </section>
+
+  <!-- 6. ゲームフロー -->
+  <section class="card" data-sec="6">
+    <h2><span class="num">6</span>ゲームフローと画面</h2>
+    <p class="section-note">起動からゲームオーバーまでの流れと、画面に常時表示する情報。</p>
+    <div class="field">
+      <label>画面遷移<span class="opt">任意</span></label>
+      <p class="hint">空欄なら標準構成（タイトル → プレイ → ゲームオーバー → リトライ）になります。</p>
+      <textarea id="f_flow" placeholder="例: タイトル → プレイ → （クリア）リザルト → 次ステージ / （死亡）ゲームオーバー → タイトル"></textarea>
+    </div>
+    <div class="field">
+      <label>HUD（プレイ中の常時表示）<span class="opt">任意</span></label>
+      <textarea id="f_hud" placeholder="例: 左上=HP、右上=スコア、下中央=磁力ゲージ"></textarea>
+    </div>
+  </section>
+
+  <!-- 7. 勝敗と進行 -->
+  <section class="card" data-sec="7">
+    <h2><span class="num">7</span>勝敗条件と進行</h2>
+    <p class="section-note">「いつ勝ち、いつ負け、何が増えていくか」。</p>
+    <div class="row2">
+      <div class="field">
+        <label>勝利/クリア条件<span class="req">*必須</span></label>
+        <input type="text" id="f_win" data-req placeholder="例: 3分間生存でステージクリア / 全10ステージ制覇">
+      </div>
+      <div class="field">
+        <label>敗北条件<span class="req">*必須</span></label>
+        <input type="text" id="f_lose" data-req placeholder="例: HPが0になる">
+      </div>
+    </div>
+    <div class="field">
+      <label>難易度の上がり方<span class="opt">任意</span></label>
+      <textarea id="f_difficulty" placeholder="例: 30秒ごとに敵の出現数+1。2分経過で高速の敵が混ざる"></textarea>
+    </div>
+    <div class="field">
+      <label>成長・アンロック要素<span class="opt">任意</span></label>
+      <textarea id="f_progression" placeholder="例: 撃破数に応じてレベルアップ、3択の強化から1つ選ぶ（磁力範囲+20% / 移動+10% / HP+1）"></textarea>
+    </div>
+  </section>
+
+  <!-- 8. 数値表 -->
+  <section class="card" data-sec="8">
+    <h2><span class="num">8</span>初期バランス数値表</h2>
+    <p class="section-note">主要パラメータの初期値。仮でOK。実装者はこれを設定ファイル/CONFIGに集約し、調整可能にします。</p>
+    <table class="balance">
+      <thead><tr><th style="width:32%">パラメータ</th><th style="width:22%">値</th><th>備考</th><th style="width:32px"></th></tr></thead>
+      <tbody id="balanceBody"></tbody>
+    </table>
+    <p><button class="btn small" id="btnAddRow">＋ 行を追加</button></p>
+  </section>
+
+  <!-- 9. 見た目と音 -->
+  <section class="card" data-sec="9">
+    <h2><span class="num">9</span>ビジュアルとサウンド</h2>
+    <p class="section-note">アートの方向性。プログラム描画・図形ベースの仮素材でも十分遊べるゲームになります。</p>
+    <div class="row2">
+      <div class="field">
+        <label>グラフィックの方式<span class="opt">任意</span></label>
+        <select id="f_artstyle">
+          <option value="">おまかせ（実装者が選択）</option>
+          <option>図形ベース（プログラム描画）</option>
+          <option>ドット絵風</option>
+          <option>フラットデザイン</option>
+          <option>ネオン・グロー系</option>
+          <option>手描き風</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>色・雰囲気<span class="opt">任意</span></label>
+        <input type="text" id="f_mood" placeholder="例: 暗い宇宙背景にネオンカラー。ダークだがポップ">
+      </div>
+    </div>
+    <div class="field">
+      <label>サウンド<span class="opt">任意</span></label>
+      <select id="f_audio">
+        <option value="">おまかせ（実装者が選択）</option>
+        <option>不要（無音でよい）</option>
+        <option>効果音のみ（合成音でOK）</option>
+        <option>効果音+BGM（合成/生成でOK）</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- 10. 技術要件 -->
+  <section class="card" data-sec="10">
+    <h2><span class="num">10</span>技術要件</h2>
+    <p class="section-note">実装形式の指定。迷ったら「単一HTMLファイル」が最も確実に動きます。</p>
+    <div class="row2">
+      <div class="field">
+        <label>実装形式<span class="req">*必須</span></label>
+        <select id="f_tech" data-req>
+          <option value="">選択してください</option>
+          <option>単一HTMLファイル（Canvas + JS、外部依存なし）【推奨】</option>
+          <option>HTML/CSS/JS 分割ファイル（外部依存なし）</option>
+          <option>JSライブラリ使用可（Three.js / Phaser 等）</option>
+          <option>Python + Pygame</option>
+          <option>その他（備考に記入）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>セーブ機能<span class="opt">任意</span></label>
+        <select id="f_save">
+          <option value="">おまかせ（実装者が選択）</option>
+          <option>不要</option>
+          <option>ハイスコアのみ保存</option>
+          <option>進行状況を保存</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>その他の技術的な指定・備考<span class="opt">任意</span></label>
+      <textarea id="f_technotes" placeholder="例: 60fps目標。ウィンドウリサイズ対応。スマホは考慮不要"></textarea>
+    </div>
+  </section>
+
+  <!-- 11. スコープ -->
+  <section class="card" data-sec="11">
+    <h2><span class="num">11</span>スコープ</h2>
+    <p class="section-note">「どこまで作れば完成か」の線引き。実装者の暴走（作り込みすぎ・未完成）を防ぐ最重要セクションです。</p>
+    <div class="field">
+      <label>必須機能（これがないと未完成）<span class="req">*必須</span></label>
+      <p class="hint">1行1機能で。ここに書いたものがすべて動いて初めて「完成」です。</p>
+      <textarea id="f_must" data-req placeholder="例:
+タイトル画面からゲーム開始できる
+コアループ（吸着→束ねる→投げる→強化）が一通り動く
+敵3種類、ステージ1つ
+ゲームオーバーとリトライ
+ハイスコア表示"></textarea>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>あれば嬉しい機能（余裕があれば）<span class="opt">任意</span></label>
+        <textarea id="f_nice" placeholder="例: ボス敵、実績システム、リプレイ"></textarea>
+      </div>
+      <div class="field">
+        <label>やらないこと<span class="opt">任意・強く推奨</span></label>
+        <textarea id="f_wont" placeholder="例: マルチプレイ、ステージエディタ、スマホ対応"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. 受け入れ基準 -->
+  <section class="card" data-sec="12">
+    <h2><span class="num">12</span>受け入れ基準（完成の定義）</h2>
+    <p class="section-note">実装者が完成を自己判定するためのチェックリスト。基本項目は自動で付与されるので、このゲーム固有の確認項目だけ追加してください。</p>
+    <div class="field">
+      <label>ゲーム固有のチェック項目<span class="opt">任意</span></label>
+      <textarea id="f_accept" placeholder="例:
+デブリを10個以上束ねても処理落ちしない
+束が大きいほどダメージが大きいことが体感できる
+初見でも操作説明なしで1分以内に「束ねて投げる」に気づける"></textarea>
+    </div>
+  </section>
+
+  <div class="footer-actions">
+    <button class="btn primary" id="btnExport">📄 要件定義書を生成</button>
+    <span id="status"></span>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <div class="dlg-head">
+    <h3>要件定義書（Markdown）— このままAIに渡せます</h3>
+    <button class="btn small" id="btnCloseDlg">閉じる</button>
+  </div>
+  <pre id="mdOut"></pre>
+  <div class="dlg-foot">
+    <button class="btn" id="btnCopy">📋 コピー</button>
+    <button class="btn" id="btnDownload">⬇ .md をダウンロード</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+const LS_KEY = "game-requirements-v1";
+const $ = id => document.getElementById(id);
+
+/* ---------- 動的リスト: メカニクス ---------- */
+const MECH_FIELDS = [
+  ["name",     "メカニクス名", "input",    "例: 磁力吸着"],
+  ["trigger",  "トリガー（いつ発動するか）", "input", "例: 左クリック長押し中、照準から半径120px内のデブリに作用"],
+  ["behavior", "挙動（数値込みで）", "textarea", "例: 毎秒2個まで吸着。束は最大12個。束のダメージ = 個数 × 10"],
+  ["feedback", "フィードバック（見た目・音）", "input", "例: 吸着中は対象が照準に向かって光の線でつながる"],
+  ["edge",     "エッジケース", "input", "例: 束ねている最中に被弾すると束は散らばる"]
+];
+function addMech(data = {}) {
+  const div = document.createElement("div");
+  div.className = "dyn-item";
+  div.innerHTML = `<button class="del" title="削除">✕</button>` + MECH_FIELDS.map(([key, label, kind, ph]) => `
+    <div class="field">
+      <label>${label}</label>
+      ${kind === "textarea"
+        ? `<textarea data-mech="${key}" placeholder="${ph}"></textarea>`
+        : `<input type="text" data-mech="${key}" placeholder="${ph}">`}
+    </div>`).join("");
+  div.querySelector(".del").onclick = () => { div.remove(); save(); };
+  MECH_FIELDS.forEach(([key]) => { div.querySelector(`[data-mech=${key}]`).value = data[key] || ""; });
+  $("mechList").appendChild(div);
+}
+function getMechs() {
+  return [...document.querySelectorAll("#mechList .dyn-item")].map(item => {
+    const m = {};
+    MECH_FIELDS.forEach(([key]) => m[key] = item.querySelector(`[data-mech=${key}]`).value.trim());
+    return m;
+  }).filter(m => Object.values(m).some(v => v));
+}
+
+/* ---------- 動的リスト: 数値表 ---------- */
+const DEFAULT_ROWS = [
+  ["プレイヤーHP", "", ""], ["プレイヤー移動速度", "", ""], ["敵の出現間隔", "", ""], ["敵のHP", "", ""]
+];
+function addRow(param = "", value = "", note = "") {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="text" data-bal="param" placeholder="パラメータ名"></td>
+    <td><input type="text" data-bal="value" placeholder="値"></td>
+    <td><input type="text" data-bal="note" placeholder="備考"></td>
+    <td><button class="del-row" title="削除">✕</button></td>`;
+  tr.querySelector("[data-bal=param]").value = param;
+  tr.querySelector("[data-bal=value]").value = value;
+  tr.querySelector("[data-bal=note]").value = note;
+  tr.querySelector(".del-row").onclick = () => { tr.remove(); save(); };
+  $("balanceBody").appendChild(tr);
+}
+function getRows() {
+  return [...document.querySelectorAll("#balanceBody tr")].map(tr => ({
+    param: tr.querySelector("[data-bal=param]").value.trim(),
+    value: tr.querySelector("[data-bal=value]").value.trim(),
+    note:  tr.querySelector("[data-bal=note]").value.trim()
+  })).filter(r => r.param || r.value);
+}
+
+/* ---------- 収集・保存 ---------- */
+const TEXT_IDS = ["f_title","f_genre","f_platform","f_session","f_reference","f_target",
+  "f_concept","f_bestmoment","f_unique","f_coreloop","f_mastery","f_controls",
+  "f_flow","f_hud","f_win","f_lose","f_difficulty","f_progression",
+  "f_artstyle","f_mood","f_audio","f_tech","f_save","f_technotes",
+  "f_must","f_nice","f_wont","f_accept"];
+
+function collect() {
+  const d = {};
+  TEXT_IDS.forEach(id => d[id] = $(id).value.trim());
+  d.devices = [...document.querySelectorAll("#f_devices input:checked")].map(c => c.value);
+  d.mechs = getMechs();
+  d.balance = getRows();
+  return d;
+}
+function restore(d) {
+  TEXT_IDS.forEach(id => { if (d[id] !== undefined) $(id).value = d[id]; });
+  document.querySelectorAll("#f_devices input").forEach(c => c.checked = (d.devices || []).includes(c.value));
+  $("mechList").innerHTML = "";
+  (d.mechs && d.mechs.length ? d.mechs : [{}]).forEach(addMech);
+  $("balanceBody").innerHTML = "";
+  (d.balance && d.balance.length ? d.balance : DEFAULT_ROWS.map(r => ({param:r[0],value:r[1],note:r[2]}))).forEach(r => addRow(r.param, r.value, r.note));
+  updateMeter();
+}
+let saveTimer;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    localStorage.setItem(LS_KEY, JSON.stringify(collect()));
+    $("status").textContent = "✓ 自動保存済み";
+    setTimeout(() => $("status").textContent = "", 1500);
+    updateMeter();
+  }, 400);
+}
+document.addEventListener("input", save);
+document.addEventListener("change", save);
+
+/* ---------- 記入率 ---------- */
+function updateMeter() {
+  const d = collect();
+  const reqOK = [d.f_title, d.f_genre, d.f_platform, d.f_concept, d.f_coreloop,
+    d.devices.length ? "x" : "", d.f_win, d.f_lose, d.f_tech, d.f_must].filter(Boolean).length;
+  const optIds = ["f_session","f_reference","f_target","f_bestmoment","f_unique","f_mastery",
+    "f_controls","f_flow","f_hud","f_difficulty","f_progression","f_artstyle","f_mood",
+    "f_audio","f_save","f_technotes","f_nice","f_wont","f_accept"];
+  const optOK = optIds.filter(id => d[id]).length + (d.mechs.length ? 1 : 0) + (d.balance.length ? 1 : 0);
+  const pct = Math.round((reqOK / 10) * 60 + (optOK / (optIds.length + 2)) * 40);
+  $("meterBar").style.width = pct + "%";
+  $("meterLabel").textContent = `記入率 ${pct}%（必須 ${reqOK}/10）`;
+}
+
+/* ---------- Markdown 生成 ---------- */
+const AUTO = "（指定なし — 実装者が本書のコンセプトに沿った妥当なデフォルトを決定し、決定内容を成果物冒頭に明記すること）";
+const v = s => s || AUTO;
+const list = s => s ? s.split("\n").map(l => l.trim()).filter(Boolean).map(l => "- " + l.replace(/^[-*・\d.)\s]+/, "")).join("\n") : "";
+
+function buildMarkdown(d) {
+  const mechMd = d.mechs.length ? d.mechs.map((m, i) => `### 5.${i + 1} ${m.name || "（名称未設定）"}
+| 項目 | 内容 |
+|---|---|
+| トリガー | ${v(m.trigger)} |
+| 挙動 | ${v(m.behavior)} |
+| フィードバック | ${v(m.feedback)} |
+| エッジケース | ${v(m.edge)} |`).join("\n\n") : AUTO;
+
+  const balMd = d.balance.length
+    ? "| パラメータ | 初期値 | 備考 |\n|---|---|---|\n" +
+      d.balance.map(r => `| ${r.param} | ${r.value || "実装者が設定"} | ${r.note} |`).join("\n")
+    : AUTO;
+
+  const acceptAuto = [
+    "起動から操作可能になるまでエラーが発生しない",
+    "§3 コアループが一連の流れとして成立している（各ステップが実際に次のステップへつながる）",
+    "§7 の勝利条件・敗北条件がどちらも実際に到達・発生し、その後のフロー（リザルト/リトライ）が機能する",
+    "§11 の必須機能がすべて動作する",
+    "ゲームオーバー → リトライを3回繰り返しても状態がリセットされ、不整合が起きない",
+    "対象プラットフォームの標準環境で目立った処理落ちがない"
+  ];
+  const acceptAll = acceptAuto.concat(d.f_accept ? d.f_accept.split("\n").map(l => l.trim()).filter(Boolean) : []);
+
+  return `# ${d.f_title} — ゲーム要件定義書
+
+## 0. 実装者（AI）への指示
+
+あなたはこの要件定義書に従い、**動作するゲームを完成させる**こと。以下のルールで進める。
+
+1. **完成の定義は §12 受け入れ基準**。全項目を満たすまで作業を続ける
+2. 「${AUTO.slice(1, 5)}…」と書かれた項目は、§2 コンセプトに最も合う選択を自分で行い、**決定内容を成果物の冒頭（READMEまたはコードコメント）に列挙**する。ユーザーへの質問で作業を止めない
+3. §11 の「必須機能」をすべて実装するまで「あれば嬉しい機能」に着手しない。「やらないこと」は実装しない
+4. 数値バランス（§8）はすべて設定オブジェクト/ファイルに集約し、コードに散在させない
+5. 実装後、§12 のチェックリストを自分で1項目ずつ検証し、結果を報告する。未達項目があれば修正してから完了とする
+6. 仕様同士が矛盾する場合は §2 コンセプト > §3 コアループ > その他 の優先順で解釈し、解釈をREADMEに記録する
+
+## 1. 基本情報
+
+| 項目 | 内容 |
+|---|---|
+| タイトル（仮） | ${d.f_title} |
+| ジャンル | ${d.f_genre} |
+| プラットフォーム | ${d.f_platform} |
+| 1プレイの長さ | ${v(d.f_session)} |
+| 参考ゲーム | ${d.f_reference || "（なし）"} |
+| ターゲット | ${v(d.f_target)} |
+
+## 2. コンセプト
+
+**${d.f_concept}**
+
+- **一番気持ちいい瞬間**: ${v(d.f_bestmoment)}
+- **差別化ポイント**: ${d.f_unique || "（特記なし）"}
+
+## 3. コアループ
+
+${list(d.f_coreloop)}
+
+**上達・飽きさせない要素**: ${v(d.f_mastery)}
+
+## 4. 操作
+
+- **入力デバイス**: ${d.devices.join("、")}
+- **操作割り当て**:
+${d.f_controls ? list(d.f_controls) : "- " + AUTO}
+
+## 5. 主要メカニクス
+
+${mechMd}
+
+## 6. ゲームフローと画面
+
+- **画面遷移**: ${d.f_flow || "タイトル → プレイ → ゲームオーバー → リトライ（標準構成）"}
+- **HUD**: ${v(d.f_hud)}
+
+## 7. 勝敗条件と進行
+
+| 項目 | 内容 |
+|---|---|
+| 勝利/クリア条件 | ${d.f_win} |
+| 敗北条件 | ${d.f_lose} |
+| 難易度の上がり方 | ${v(d.f_difficulty)} |
+| 成長・アンロック | ${d.f_progression || "（なし）"} |
+
+## 8. 初期バランス数値表
+
+${balMd}
+
+※ 値はすべて初期案。実装者は調整可能な形（CONFIG集約）で実装すること。
+
+## 9. ビジュアルとサウンド
+
+| 項目 | 内容 |
+|---|---|
+| グラフィック方式 | ${v(d.f_artstyle)} |
+| 色・雰囲気 | ${v(d.f_mood)} |
+| サウンド | ${v(d.f_audio)} |
+
+アート素材が用意できない場合は、識別性を優先したプログラム描画（機能ごとに色相・シルエットを固定）で代替してよい。
+
+## 10. 技術要件
+
+| 項目 | 内容 |
+|---|---|
+| 実装形式 | ${d.f_tech} |
+| セーブ | ${v(d.f_save)} |
+| 備考 | ${d.f_technotes || "（特記なし）"} |
+
+共通要件: ゲームロジックはフレームレート非依存（deltaTimeまたは固定タイムステップ）で実装すること。
+
+## 11. スコープ
+
+### 必須機能（すべて動作して初めて完成）
+${list(d.f_must)}
+
+### あれば嬉しい機能（必須完了後のみ着手可）
+${d.f_nice ? list(d.f_nice) : "（なし）"}
+
+### やらないこと（実装禁止）
+${d.f_wont ? list(d.f_wont) : "（特になし — ただし必須機能を圧迫する追加実装はしない）"}
+
+## 12. 受け入れ基準（完成の定義）
+
+${acceptAll.map(a => "- [ ] " + a).join("\n")}
+
+---
+*この文書はゲーム要件定義シートで作成されました。実装者は §0 の指示に従ってください。*
+`;
+}
+
+/* ---------- エクスポート ---------- */
+const REQ_CHECKS = [
+  ["f_title", "1. タイトル"], ["f_genre", "1. ジャンル"], ["f_platform", "1. プラットフォーム"],
+  ["f_concept", "2. コンセプト1文"], ["f_coreloop", "3. コアループ"],
+  ["devices", "4. 入力デバイス"], ["f_win", "7. 勝利条件"], ["f_lose", "7. 敗北条件"],
+  ["f_tech", "10. 実装形式"], ["f_must", "11. 必須機能"]
+];
+$("btnExport").onclick = () => {
+  const d = collect();
+  document.querySelectorAll(".missing").forEach(el => el.classList.remove("missing"));
+  const missing = REQ_CHECKS.filter(([key]) => key === "devices" ? !d.devices.length : !d[key]);
+  if (missing.length) {
+    missing.forEach(([key]) => {
+      const el = key === "devices" ? $("f_devices") : $(key);
+      el.classList.add("missing");
+    });
+    const first = missing[0][0] === "devices" ? $("f_devices") : $(missing[0][0]);
+    first.scrollIntoView({ behavior: "smooth", block: "center" });
+    alert("必須項目が未記入です:\n\n" + missing.map(([, label]) => "・" + label).join("\n"));
+    return;
+  }
+  $("mdOut").textContent = buildMarkdown(d);
+  $("dlg").showModal();
+};
+$("btnCloseDlg").onclick = () => $("dlg").close();
+$("btnCopy").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($("mdOut").textContent);
+    $("btnCopy").textContent = "✓ コピーしました";
+  } catch {
+    const r = document.createRange(); r.selectNodeContents($("mdOut"));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    $("btnCopy").textContent = "選択しました（Ctrl+Cでコピー）";
+  }
+  setTimeout(() => $("btnCopy").textContent = "📋 コピー", 2500);
+};
+$("btnDownload").onclick = () => {
+  const d = collect();
+  const blob = new Blob([$("mdOut").textContent], { type: "text/markdown;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (d.f_title || "game") + "-要件定義書.md";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+/* ---------- サンプル・全消去 ---------- */
+$("btnSample").onclick = () => {
+  if (!confirm("現在の入力を記入例で上書きします。よろしいですか?")) return;
+  restore({
+    f_title: "星くず回収社", f_genre: "2Dアクション（見下ろし型サバイバー系）",
+    f_platform: "Webブラウザ（PC）", f_session: "1周 3〜5分、リトライ前提",
+    f_reference: "Vampire Survivors の物量と成長感、塊魂の「集めて大きくする」快感",
+    f_target: "休憩時間に短時間遊ぶカジュアル〜ミドル層",
+    f_concept: "宇宙清掃員が、増え続けるデブリを磁力で束ねて投げ返すことで、ギリギリの掃除快感を味わうゲーム",
+    f_bestmoment: "画面いっぱいに散らばるデブリを1つの巨大な塊に束ね、敵の群れに投げつけて一掃する瞬間",
+    f_unique: "攻撃手段が「その辺のデブリを拾って投げ返す」しかない。自前の弾は撃てない",
+    f_coreloop: "1. デブリと敵弾を避けながら立ち回る\n2. 磁力でデブリを吸着して束ねる（束ねるほど強いが無防備）\n3. 束を敵に投げて撃破する\n4. 撃破で経験値、レベルアップで3択強化 → 1に戻る",
+    f_mastery: "束の大きさとリスクのトレードオフ判断。小さく速く回すか、大きく溜めて一掃するか",
+    devices: ["キーボード", "マウス"],
+    f_controls: "WASD/矢印 = 移動\nマウス移動 = 照準\n左クリック長押し = 磁力吸着（束ねる）\n左クリック離す = 投げる",
+    mechs: [
+      { name: "磁力吸着", trigger: "左クリック長押し中、照準から半径120px内のデブリに作用",
+        behavior: "毎秒2個まで吸着。束の最大数は12個（強化で+4ずつ）。吸着中は移動速度が70%に低下",
+        feedback: "吸着対象と照準が光の線でつながる。束が大きくなるほど低い駆動音が強まる",
+        edge: "吸着中に被弾すると束は全部散らばる（デブリは消えず再回収可能）" },
+      { name: "投擲", trigger: "左クリックを離した瞬間、照準方向に発射",
+        behavior: "束ダメージ = 個数 × 10。射程は画面端まで。命中した敵を貫通する（貫通ごとに個数が2減る）",
+        feedback: "発射時に画面シェイク（束の個数に比例、最大6px）。命中時ヒットストップ3フレーム",
+        edge: "0個で離した場合は何も起きない（空撃ちペナルティなし）" },
+      { name: "レベルアップ強化", trigger: "経験値が閾値到達（閾値は 10 × 1.4^Lv）",
+        behavior: "時間停止して3択表示: 磁力範囲+20% / 移動速度+10% / 最大HP+1（即時全回復）",
+        feedback: "選択肢はカードUIで表示、選択時にファンファーレSE",
+        edge: "選択中は完全ポーズ。敵・弾・タイマーすべて停止" }
+    ],
+    f_flow: "タイトル → プレイ → （3分生存）リザルト（スコア・ハイスコア表示） → タイトル / （死亡）ゲームオーバー → 即リトライ or タイトル",
+    f_hud: "左上=HPハート表示、上中央=残り時間、右上=スコア、プレイヤー足元=経験値リング",
+    f_win: "3分間生存でクリア（スコアはデブリ撃破数で加算）", f_lose: "HPが0になる",
+    f_difficulty: "20秒ごとに敵の同時出現数+1。90秒経過で高速突進型が、150秒で弾を撃つ砲台型が混ざる",
+    f_progression: "プレイ中のみのレベルアップ強化（上記メカニクス参照）。周回持ち越しはハイスコアのみ",
+    balance: [
+      { param: "プレイヤーHP", value: "3", note: "ハート表示" },
+      { param: "プレイヤー移動速度", value: "220px/秒", note: "吸着中は70%" },
+      { param: "磁力範囲", value: "半径120px", note: "強化で+20%/回" },
+      { param: "束の最大数", value: "12個", note: "" },
+      { param: "雑魚敵HP", value: "20", note: "デブリ2個分で撃破" },
+      { param: "敵の基本出現間隔", value: "2秒", note: "20秒ごとに短縮" },
+      { param: "クリアまでの時間", value: "180秒", note: "" }
+    ],
+    f_artstyle: "ネオン・グロー系", f_mood: "暗い宇宙背景（濃紺）にネオンカラー。プレイヤー=シアン、敵=マゼンタ、デブリ=イエロー",
+    f_audio: "効果音のみ（合成音でOK）",
+    f_tech: "単一HTMLファイル（Canvas + JS、外部依存なし）【推奨】", f_save: "ハイスコアのみ保存",
+    f_technotes: "60fps目標。1280×720の論理解像度でウィンドウにフィット。スマホ対応は不要",
+    f_must: "タイトル画面からゲーム開始できる\nコアループ（避ける→束ねる→投げる→強化）が一通り動く\n敵3種類（通常・突進・砲台）\n3分サバイバル1ステージ\nゲームオーバー / クリアと即リトライ\nハイスコアの保存と表示",
+    f_nice: "ボス敵（2分時点で出現）\n強化の種類を6種に増やす\n束が大きいときの専用演出",
+    f_wont: "マルチプレイ\nステージ複数\nスマホ・タッチ対応\n外部アセット（画像・音声ファイル）の使用",
+    f_accept: "デブリを12個束ねても60fpsを維持する\n束が大きいほど強いことが数値表示なしでも体感できる\n初見でも操作説明を読めば30秒以内に「束ねて投げる」ができる\n吸着中の被弾で束が散らばる仕様が正しく動く"
+  });
+  save();
+  scrollTo({ top: 0, behavior: "smooth" });
+};
+$("btnClear").onclick = () => {
+  if (!confirm("すべての入力を消去します。よろしいですか?")) return;
+  localStorage.removeItem(LS_KEY);
+  restore({});
+};
+
+/* ---------- 初期化 ---------- */
+try { restore(JSON.parse(localStorage.getItem(LS_KEY)) || {}); }
+catch { restore({}); }
+</script>
+</body>
+</html>
