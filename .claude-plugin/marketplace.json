@@ -1,0 +1,20 @@
+{
+  "name": "fable-skills",
+  "description": "k-daisuke-works のカスタムスキル・プラグイン集",
+  "owner": {
+    "name": "k-daisuke-works",
+    "email": "d36153615@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "game-dev",
+      "source": "./plugins/game-dev",
+      "description": "ゲーム開発のライフサイクル全体（企画・設計・実装・調整・QA・リリース）をカバーする13のスキル集"
+    },
+    {
+      "name": "marketing-biz",
+      "source": "./plugins/marketing-biz",
+      "description": "マーケティング（調査・戦略・コピー・SEO・SNS・PR・ローンチ・KPI）とビジネスプランニング（リーンキャンバス・事業計画・財務モデル・価格・ピッチ・OKR）の15スキル集"
+    }
+  ]
+}

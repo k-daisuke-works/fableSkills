@@ -1,0 +1,10 @@
+{
+  "name": "marketing-biz",
+  "displayName": "Marketing & Business Planning Skills",
+  "description": "マーケティング（調査・戦略・コピー・SEO・SNS・PR・ローンチ・KPI）とビジネスプランニング（リーンキャンバス・事業計画・財務モデル・価格・ピッチ・OKR）をカバーする15のスキル集",
+  "author": {
+    "name": "k-daisuke-works"
+  },
+  "license": "MIT",
+  "keywords": ["marketing", "business-planning", "seo", "copywriting", "financial-model", "okr", "pitch-deck"]
+}
