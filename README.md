@@ -39,6 +39,12 @@ plugins/
 |---|---|
 | [game-dev](plugins/game-dev/README.md) | ゲーム開発のライフサイクル全体をカバーする13スキル + 6エージェント + テンプレート（要件定義HTML・CLAUDE.md） |
 | [marketing-biz](plugins/marketing-biz/README.md) | マーケティング9スキル（調査・戦略・コピー・SEO・SNS・PR・ローンチ・KPI）+ ビジネスプランニング6スキル（リーンキャンバス・事業計画・財務モデル・価格・ピッチ・OKR） |
+| [android-dev](plugins/android-dev/README.md) | Androidアプリ開発の全工程（雛形・設計・Compose UI・データ層・バックグラウンド・品質・リリース・CI）をカバーする15スキル + 5エージェント |
+
+## スキル設計の方針
+
+- **description は常時コンテキストに載る**（本文は呼び出し時のみ読まれる）ため、description は1〜2文に圧縮し、詳細な誘導は本文に書く
+- 手順・チェックリストは SKILL.md 本文に、長大な参照資料は `references/` に分離して段階的に読み込ませる
 
 ## プロジェクトスキル（このリポジトリ専用）
 

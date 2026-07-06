@@ -1,6 +1,6 @@
 ---
 name: growth-metrics
-description: KPI設計・ファネル分析・グロース指標の設計と改善分析。North Star Metricの選定、KPIツリー分解、ファネル(AARRR)のボトルネック特定、改善施策の優先順位付けを行う。「KPIを設計して」「ファネルを分析して」「どの数字を追うべきか」「CVRが下がった原因を調べて」などの依頼で使用する。
+description: KPI設計・ファネル分析。NSM選定・KPIツリー・AARRR・ボトルネック特定と改善優先順位。
 ---
 
 # KPI設計・グロース分析
