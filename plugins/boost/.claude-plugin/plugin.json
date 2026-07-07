@@ -1,0 +1,10 @@
+{
+  "name": "boost",
+  "displayName": "Boost",
+  "description": "Opus/Sonnet/HaikuにFableレベルの行動様式（自律実行・スコープ規律・検証済み報告・成果先出しの要約）と難所限定の推論ブーストを適用するスキル",
+  "author": {
+    "name": "k-daisuke-works"
+  },
+  "license": "MIT",
+  "keywords": ["behavior", "autonomy", "quality", "fable", "boost"]
+}
